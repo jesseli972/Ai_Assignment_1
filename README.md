@@ -10,5 +10,3 @@ The project implements Repeated A*, Repeated Backward A*, and Adaptive A* in gri
 
 ## How to Run
 1. Set up a Python virtual environment.
-
-f
