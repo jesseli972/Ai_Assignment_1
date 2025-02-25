@@ -41,10 +41,12 @@ def reconstruct_path(came_from, current):
 def astar(grid, start, goal):
     """
     Perform an A* search on the grid from start to goal.
+    
     Parameters:
-      grid-a 2D numpy array where 0 represents unblocked and 1 represents blocked.
-      start-tuple (x, y) indicating the start cell.
-      goal-tuple (x, y) indicating the goal cell.
+      grid  : a 2D numpy array where 0 represents unblocked and 1 represents blocked.
+      start : tuple (x, y) indicating the start cell.
+      goal  : tuple (x, y) indicating the goal cell.
+      
     Returns:
       A list of cells (tuples) representing the path from start to goal, or None if no path is found.
     """
@@ -65,11 +67,12 @@ def astar(grid, start, goal):
         
         # Expand neighbors.
         for neighbor in get_neighbors(current, grid):
-            tentative_g = g_score[current] + 1  # Cost for a move is 1.
-            if neighbor not in g_score or tentative_g < g_score[neighbor]:
-                g_score[neighbor] = tentative_g
-                f_score = tentative_g + manhattan_distance(neighbor, goal)
-                heapq.heappush(open_set, (f_score, tentative_g, neighbor))
+            temp_g = g_score[current] + 1  # Cost for a move is 1.
+            if neighbor not in g_score or temp_g < g_score[neighbor]:
+                g_score[neighbor] = temp_g
+                f_score = temp_g + manhattan_distance(neighbor, goal)
+                # Make tentative_g negative to favor a larger g
+                heapq.heappush(open_set, (f_score, temp_g, neighbor))
                 came_from[neighbor] = current
 
     # If we exit the loop without finding the goal, no path exists.
