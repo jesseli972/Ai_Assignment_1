@@ -91,10 +91,7 @@ def repeated_backward_astar(grid, start, goal):
     while agent_position != goal:
         # Run A* from the goal to the agent's current position
         path = astar(agent_knowledge, goal, agent_position)
-        print("Path found:\n", path)
-        print()
         if not path:
-            print("No path found.")
             return None
         
         # Move the agent along the path (in reverse order, since the search is backward)

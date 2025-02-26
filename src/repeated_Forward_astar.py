@@ -90,10 +90,7 @@ def repeated_forward_astar(grid, start, goal):
     while agent_position != goal:
         # Run A* from the agent's current position to the goal
         path = astar(agent_knowledge, agent_position, goal)
-        print("Path found:\n", path)
-        print()
         if not path:
-            print("No path found.")
             return None
         
         # Move the agent along the path (from start to goal)
