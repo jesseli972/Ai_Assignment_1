@@ -1,6 +1,7 @@
 import heapq
 import numpy as np
 
+# Constants
 UNBLOCKED = 0
 BLOCKED = 1
 
@@ -35,18 +36,16 @@ def reconstruct_path(came_from, current):
     while current in came_from:
         current = came_from[current]
         path.append(current)
-    path.reverse()
+    path.reverse()  # Ensure the path is from start to goal
     return path
 
-def astar(grid, start, goal):
+def astar(grid, start, goal, tie_breaking="larger_g"):
     """
     Perform an A* search on the grid from start to goal.
-    
     Parameters:
-      grid  : a 2D numpy array where 0 represents unblocked and 1 represents blocked.
-      start : tuple (x, y) indicating the start cell.
-      goal  : tuple (x, y) indicating the goal cell.
-      
+      grid: a 2D numpy array where 0 represents unblocked and 1 represents blocked.
+      start: tuple (x, y) indicating the start cell.
+      goal: tuple (x, y) indicating the goal cell.
     Returns:
       A list of cells (tuples) representing the path from start to goal, or None if no path is found.
     """
@@ -67,27 +66,65 @@ def astar(grid, start, goal):
         
         # Expand neighbors.
         for neighbor in get_neighbors(current, grid):
-            temp_g = g_score[current] + 1  # Cost for a move is 1.
-            if neighbor not in g_score or temp_g < g_score[neighbor]:
-                g_score[neighbor] = temp_g
-                f_score = temp_g + manhattan_distance(neighbor, goal)
-                # Make tentative_g negative to favor a larger g
-                heapq.heappush(open_set, (f_score, temp_g, neighbor))
+            tentative_g = g_score[current] + 1
+            if neighbor not in g_score or tentative_g < g_score[neighbor]:
+                g_score[neighbor] = tentative_g
+                f_score = tentative_g + manhattan_distance(neighbor, goal)
+                if tie_breaking == "smaller_g":
+                    heapq.heappush(open_set, (f_score, tentative_g, neighbor))
+                elif tie_breaking == "larger_g":
+                    heapq.heappush(open_set, (f_score, -tentative_g, neighbor))
                 came_from[neighbor] = current
 
     # If we exit the loop without finding the goal, no path exists.
     return None
 
-# Example
+def repeated_forward_astar(grid, start, goal):
+    """
+    Repeated Forward A* algorithm.
+    The agent searches from its current position to the goal and moves along the path.
+    """
+    agent_position = start
+    agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
+
+    while agent_position != goal:
+        # Run A* from the agent's current position to the goal
+        path = astar(agent_knowledge, agent_position, goal)
+        print("Path found:\n", path)
+        print()
+        if not path:
+            print("No path found.")
+            return None
+        
+        # Move the agent along the path (from start to goal)
+        for next_cell in path[1:]:  # Skip the first cell (current position)
+            if grid[next_cell[0], next_cell[1]] == BLOCKED:
+                # Update the agent's knowledge: mark this cell as blocked
+                agent_knowledge[next_cell[0], next_cell[1]] = BLOCKED
+                agent_position = start
+                break  # Stop moving and replan
+            else:
+                # Move to the next cell
+                agent_position = next_cell
+        else:
+            # If the loop completes without breaking, the agent has reached the goal
+            print("Reached the goal!")
+            return path
+
+    print("Reached the goal!")
+    return path
+
+# Example usage
 if __name__ == "__main__":
+    # Load a gridworld from a file
     grid = np.loadtxt("gridworlds/gridworld4.txt", dtype=int)
     
-    # Define start and goal positions.
-    # (Ensure that the start and goal cells are unblocked!)
+    # Define start and goal positions
     start = (0, 0)
     goal = (grid.shape[0] - 1, grid.shape[1] - 1)
     
-    path = astar(grid, start, goal)
+    # Run Repeated Forward A*
+    path = repeated_forward_astar(grid, start, goal)
     if path:
         print("Path found:")
         print(path)

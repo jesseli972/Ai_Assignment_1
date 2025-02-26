@@ -39,7 +39,7 @@ def reconstruct_path(came_from, current):
     path.reverse()  # Ensure the path is from start to goal
     return path
 
-def astar(grid, start, goal):
+def astar(grid, start, goal, tie_breaking="larger_g"):
     """
     Perform an A* search on the grid from start to goal.
     Parameters:
@@ -66,11 +66,14 @@ def astar(grid, start, goal):
         
         # Expand neighbors.
         for neighbor in get_neighbors(current, grid):
-            tentative_g = g_score[current] + 1  # Cost for a move is 1.
+            tentative_g = g_score[current] + 1
             if neighbor not in g_score or tentative_g < g_score[neighbor]:
                 g_score[neighbor] = tentative_g
                 f_score = tentative_g + manhattan_distance(neighbor, goal)
-                heapq.heappush(open_set, (f_score, tentative_g, neighbor))
+                if tie_breaking == "smaller_g":
+                    heapq.heappush(open_set, (f_score, tentative_g, neighbor))
+                elif tie_breaking == "larger_g":
+                    heapq.heappush(open_set, (f_score, -tentative_g, neighbor))
                 came_from[neighbor] = current
 
     # If we exit the loop without finding the goal, no path exists.
