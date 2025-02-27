@@ -56,14 +56,16 @@ def astar(grid, start, goal, tie_breaking="larger_g"):
     
     came_from = {}       # For reconstructing the path.
     g_score = {start: 0} # Cost from start to each cell.
+    nodes_expanded = 0  # Counter for nodes expanded
 
     while open_set:
         current_f, current_g, current = heapq.heappop(open_set)
         
         # Check if we have reached the goal.
         if current == goal:
-            return reconstruct_path(came_from, current)
+            return reconstruct_path(came_from, current), nodes_expanded
         
+        nodes_expanded += 1  # Increment the counter
         # Expand neighbors.
         for neighbor in get_neighbors(current, grid):
             tentative_g = g_score[current] + 1
@@ -77,7 +79,7 @@ def astar(grid, start, goal, tie_breaking="larger_g"):
                 came_from[neighbor] = current
 
     # If we exit the loop without finding the goal, no path exists.
-    return None
+    return None, nodes_expanded
 
 def repeated_forward_astar(grid, start, goal):
     """
@@ -87,15 +89,17 @@ def repeated_forward_astar(grid, start, goal):
     agent_position = start
     agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
     returnedPath = []
+    total_nodes_expanded = 0
 
     while agent_position != goal:
         # Run A* from the agent's current position to the goal
-        path = astar(agent_knowledge, agent_position, goal)
+        path, nodes_expanded = astar(agent_knowledge, agent_position, goal)
+        total_nodes_expanded += nodes_expanded  # Accumulate nodes expanded
         if not path:
             return None
         
         # Move the agent along the path (from start to goal)
-        for next_cell in path[1:]:  # Skip the first cell (current position)
+        for next_cell in path:  # Skip the first cell (current position)
             if grid[next_cell[0], next_cell[1]] == BLOCKED:
                 # Update the agent's knowledge: mark this cell as blocked
                 agent_knowledge[next_cell[0], next_cell[1]] = BLOCKED
@@ -107,9 +111,11 @@ def repeated_forward_astar(grid, start, goal):
         else:
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
+            print(f"Total nodes expanded: {total_nodes_expanded}")
             return returnedPath
 
     print("Reached the goal!")
+    print(f"Total nodes expanded: {total_nodes_expanded}")
     return returnedPath
 
 # Example usage
