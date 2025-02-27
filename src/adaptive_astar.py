@@ -59,26 +59,28 @@ def astar_adaptive(grid, start, goal, h_values):
     came_from = {}
     g_score = {start: 0}
     closed_set = set()  # Track expanded states
+    nodes_expanded = 0
 
     while open_set:
         current_f, current_g, current = heapq.heappop(open_set)
         
         if current == goal:
-            return reconstruct_path(came_from, current), closed_set, came_from
+            return reconstruct_path(came_from, current), closed_set, came_from, nodes_expanded
         
         if current in closed_set:
             continue
         closed_set.add(current)
+        nodes_expanded += 1
 
         for neighbor in get_neighbors(current, grid):
             tentative_g = g_score[current] + 1
             if neighbor not in g_score or tentative_g < g_score[neighbor]:
                 g_score[neighbor] = tentative_g
                 f_score = tentative_g + (h_values[neighbor] if neighbor in h_values else manhattan_distance(neighbor, goal))
-                heapq.heappush(open_set, (f_score, tentative_g, neighbor))
+                heapq.heappush(open_set, (f_score, -tentative_g, neighbor))
                 came_from[neighbor] = current
 
-    return None, closed_set, came_from
+    return None, closed_set, came_from, nodes_expanded
 
 def adaptive_astar(grid, start, goal):
     """
@@ -89,12 +91,15 @@ def adaptive_astar(grid, start, goal):
     agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
     h_values = {}  # Store heuristic values for each cell
     returnedPath = []
+    total_nodes_expanded = 0
 
     while agent_position != goal:
         # Run A* with adaptive heuristic values
-        path, closed_set, came_from = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
+        path, closed_set, came_from, nodes_expanded = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
+        total_nodes_expanded += nodes_expanded 
         if not path:
             print("No path found.")
+            print(f"Total nodes expanded: {total_nodes_expanded}")
             return None
         
         # Update heuristic values for all expanded states
@@ -118,9 +123,11 @@ def adaptive_astar(grid, start, goal):
         else:
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
+            print(f"Total nodes expanded: {total_nodes_expanded}")
             return returnedPath
 
     print("Reached the goal!")
+    print(f"Total nodes expanded: {total_nodes_expanded}")
     return returnedPath
 
 # Example usage
