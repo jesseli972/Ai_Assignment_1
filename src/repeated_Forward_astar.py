@@ -57,6 +57,7 @@ def astar(grid, start, goal, tie_breaking="larger_g"):
     came_from = {}       # For reconstructing the path.
     g_score = {start: 0} # Cost from start to each cell.
     nodes_expanded = 0  # Counter for nodes expanded
+    closed_set = set()
 
     while open_set:
         current_f, current_g, current = heapq.heappop(open_set)
@@ -65,6 +66,10 @@ def astar(grid, start, goal, tie_breaking="larger_g"):
         if current == goal:
             return reconstruct_path(came_from, current), nodes_expanded
         
+        if current in closed_set:
+            continue
+        
+        closed_set.add(current)
         nodes_expanded += 1  # Increment the counter
         # Expand neighbors.
         for neighbor in get_neighbors(current, grid):
