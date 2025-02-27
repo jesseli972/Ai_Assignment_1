@@ -50,6 +50,7 @@ def astar_adaptive(grid, start, goal, h_values):
     Returns:
       A list of cells (tuples) representing the path from start to goal, or None if no path is found.
       A set of cells (tuples) that were expanded during the search.
+      A dictionary of came_from pointers for path reconstruction.
     """
     open_set = []
     start_h = h_values[start] if start in h_values else manhattan_distance(start, goal)
@@ -63,7 +64,7 @@ def astar_adaptive(grid, start, goal, h_values):
         current_f, current_g, current = heapq.heappop(open_set)
         
         if current == goal:
-            return reconstruct_path(came_from, current), closed_set
+            return reconstruct_path(came_from, current), closed_set, came_from
         
         if current in closed_set:
             continue
@@ -77,7 +78,7 @@ def astar_adaptive(grid, start, goal, h_values):
                 heapq.heappush(open_set, (f_score, tentative_g, neighbor))
                 came_from[neighbor] = current
 
-    return None, closed_set
+    return None, closed_set, came_from
 
 def adaptive_astar(grid, start, goal):
     """
@@ -87,10 +88,11 @@ def adaptive_astar(grid, start, goal):
     agent_position = start
     agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
     h_values = {}  # Store heuristic values for each cell
+    returnedPath = []
 
     while agent_position != goal:
         # Run A* with adaptive heuristic values
-        path, closed_set = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
+        path, closed_set, came_from = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
         if not path:
             print("No path found.")
             return None
@@ -112,13 +114,14 @@ def adaptive_astar(grid, start, goal):
             else:
                 # Move to the next cell
                 agent_position = next_cell
+                returnedPath.append(agent_position)
         else:
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
-            return path
+            return returnedPath
 
     print("Reached the goal!")
-    return path
+    return returnedPath
 
 # Example usage
 if __name__ == "__main__":

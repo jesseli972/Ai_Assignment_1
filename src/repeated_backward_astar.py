@@ -87,6 +87,7 @@ def repeated_backward_astar(grid, start, goal):
 
     agent_position = start
     agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
+    returnedPath = []
 
     while agent_position != goal:
         # Run A* from the goal to the agent's current position
@@ -99,19 +100,20 @@ def repeated_backward_astar(grid, start, goal):
             if grid[next_cell[0], next_cell[1]] == BLOCKED:
                 # Update the agent's knowledge: mark this cell as blocked
                 agent_knowledge[next_cell[0], next_cell[1]] = BLOCKED
-                agent_position = start
+
                 break  # Stop moving and replan
             else:
                 # Move to the next cell
                 agent_position = next_cell
+                returnedPath.append(agent_position)
 
         else:
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
-            return path
+            return returnedPath
 
     print("Reached the goal!")
-    return path
+    return returnedPath
 
 # Example usage
 if __name__ == "__main__":
