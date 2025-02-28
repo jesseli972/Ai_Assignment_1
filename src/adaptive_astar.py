@@ -42,29 +42,31 @@ def reconstruct_path(came_from, current):
 def astar_adaptive(grid, start, goal, h_values):
     """
     Perform an A* search on the grid from start to goal with adaptive heuristic values.
-
-    returns:
-        path: A list of tuples representing the path from start to goal.
-        closed_set: A set of tuples representing the cells that have been visited.
-        came_from: A dictionary mapping each cell to its parent cell in the path.
-        nodes_expanded: The number of nodes expanded during the search.
+    Parameters:
+      grid: a 2D numpy array where 0 represents unblocked and 1 represents blocked.
+      start: tuple (x, y) indicating the start cell.
+      goal: tuple (x, y) indicating the goal cell.
+      h_values: a dictionary storing the heuristic values for each cell.
+    Returns:
+      A list of cells (tuples) representing the path from start to goal, or None if no path is found.
+      A set of cells (tuples) that were expanded during the search.
+      A dictionary of came_from pointers for path reconstruction.
+      g_score
     """
-
-    # Initialize the all needed variables
     open_set = []
     start_h = h_values[start] if start in h_values else manhattan_distance(start, goal)
     heapq.heappush(open_set, (start_h, 0, start))
     
     came_from = {}
     g_score = {start: 0}
-    closed_set = set()
+    closed_set = set()  # Track expanded states
     nodes_expanded = 0
 
     while open_set:
         current_f, current_g, current = heapq.heappop(open_set)
         
         if current == goal:
-            return reconstruct_path(came_from, current), closed_set, came_from, nodes_expanded
+            return reconstruct_path(came_from, current), closed_set, came_from, nodes_expanded, g_score
         
         if current in closed_set:
             continue
@@ -79,53 +81,57 @@ def astar_adaptive(grid, start, goal, h_values):
                 heapq.heappush(open_set, (f_score, -tentative_g, neighbor))
                 came_from[neighbor] = current
 
-    return None, closed_set, came_from, nodes_expanded
+    return None, closed_set, came_from, nodes_expanded, g_score
 
 def adaptive_astar(grid, start, goal):
     """
     Adaptive A* algorithm.
     The agent searches from its current position to the goal and updates heuristic values after each search.
     """
-    
-    # Initialize the all needed variables
     agent_position = start
-    agent_knowledge = np.full_like(grid, UNBLOCKED)  #assume all cells are unblocked
-    h_values = {}
+    agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
+    h_values = {}  # Store heuristic values for each cell
     returnedPath = []
     total_nodes_expanded = 0
 
     while agent_position != goal:
-        path, closed_set, came_from, nodes_expanded = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
-        total_nodes_expanded += nodes_expanded 
-        if not path:
+        # Run A* with adaptive heuristic values
+        result = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
+        if result[0] is None:
             print("No path found.")
             print(f"Total nodes expanded: {total_nodes_expanded}")
             return None, total_nodes_expanded
         
+        path, closed_set, came_from, nodes_expanded, g_score = result
+        total_nodes_expanded += nodes_expanded
+        
         # Update heuristic values for all expanded states
-        goal_distance = len(path) - 1 
+        goal_distance = len(path) - 1  # g(s_goal)
         for cell in closed_set:
+            """
+            # Reconstruct the path to the cell to calculate g(s)
             cell_path = reconstruct_path(came_from, cell)
             g_cell = len(cell_path) - 1
+            """
+            g_cell = g_score[cell]
             h_values[cell] = goal_distance - g_cell
 
         # Move the agent along the path
-        for next_cell in path[1:]: 
+        for next_cell in path[1:]:  # Skip the first cell (current position)
             if grid[next_cell[0], next_cell[1]] == BLOCKED:
                 # Update the agent's knowledge: mark this cell as blocked
                 agent_knowledge[next_cell[0], next_cell[1]] = BLOCKED
-                break 
+                break  # Stop moving and replan
             else:
                 # Move to the next cell
                 agent_position = next_cell
                 returnedPath.append(agent_position)
         else:
-            #agent reached the goal
+            # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
             print(f"Total nodes expanded: {total_nodes_expanded}")
             return returnedPath, total_nodes_expanded
 
-    #agent reached the goal
     print("Reached the goal!")
     print(f"Total nodes expanded: {total_nodes_expanded}")
     return returnedPath, total_nodes_expanded
