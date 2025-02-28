@@ -28,7 +28,7 @@ def generate_gridworld():
         if not stack:
             unvisited_cells = np.argwhere(grid == -1)
             if len(unvisited_cells) == 0:
-                break  # All cells are visited
+                break 
             start_x, start_y = unvisited_cells[random.randint(0, len(unvisited_cells) - 1)]
             grid[start_x, start_y] = UNBLOCKED
             stack.append((start_x, start_y))
@@ -45,20 +45,20 @@ def generate_gridworld():
         if neighbors:
             nx, ny = random.choice(neighbors)
             if random.random() < BLOCKED_PROBABILITY:
-                grid[nx, ny] = BLOCKED  # Mark as blocked
+                grid[nx, ny] = BLOCKED  #Mark as blocked
             else:
-                grid[nx, ny] = UNBLOCKED  # Mark as unblocked and continue DFS
+                grid[nx, ny] = UNBLOCKED  #Mark as unblocked
                 stack.append((nx, ny))
         else:
-            stack.pop()  # No unvisited neighbors, backtrack
+            stack.pop()  #backtrack
 
     unblocked_cells = np.argwhere(grid == UNBLOCKED)
     agent_x, agent_y = unblocked_cells[random.randint(0, len(unblocked_cells) - 1)]
     grid[agent_x, agent_y] = AGENT
     
-    # Place the target (green) at another unblocked position
+    # Place the targetat another unblocked position
     target_x, target_y = unblocked_cells[random.randint(0, len(unblocked_cells) - 1)]
-    while (target_x, target_y) == (agent_x, agent_y):  # Ensure they are not the same
+    while (target_x, target_y) == (agent_x, agent_y):
         target_x, target_y = unblocked_cells[random.randint(0, len(unblocked_cells) - 1)]
     grid[target_x, target_y] = TARGET
 
@@ -91,6 +91,7 @@ def visualize_gridworld(grid, filename=None):
     else:
         plt.show()  # Show the plot
 
+# Function to generate and save gridworlds
 def generate_and_save_gridworlds():
     if not os.path.exists("gridworlds"):
         os.makedirs("gridworlds")
@@ -103,7 +104,7 @@ def generate_and_save_gridworlds():
         filename_img = f"gridworlds/images/gridworld{i+1}.png"
         
         save_gridworld(grid, filename_txt)
-        visualize_gridworld(grid, filename_img)  # Save visualization
+        visualize_gridworld(grid, filename_img)
 
 if __name__ == "__main__":
     generate_and_save_gridworlds()

@@ -1,5 +1,6 @@
 import heapq
 import numpy as np
+from collections import deque
 
 # Constants
 UNBLOCKED = 0
@@ -8,17 +9,16 @@ BLOCKED = 1
 def manhattan_distance(a, b):
     """
     Compute the Manhattan distance between two cells a and b.
-    a, b: tuples (x, y)
     """
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def get_neighbors(cell, grid):
     """
-    For a given cell (x, y), return all neighboring cells that are in bounds and unblocked.
+    return all neighboring cells that are in bounds and unblocked.
     """
     neighbors = []
     x, y = cell
-    # Four possible moves: up, down, left, right
+    #up, down, left, right
     directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
     for dx, dy in directions:
         nx, ny = x + dx, y + dy
@@ -30,35 +30,34 @@ def get_neighbors(cell, grid):
 
 def reconstruct_path(came_from, current):
     """
-    Reconstruct the path from the start to the current cell by backtracking through came_from.
+    Reconstruct the path from the start to the current cell by backtracking
     """
     path = [current]
     while current in came_from:
         current = came_from[current]
         path.append(current)
-    path.reverse()  # Ensure the path is from start to goal
+    path.reverse()
     return path
 
 def astar_adaptive(grid, start, goal, h_values):
     """
     Perform an A* search on the grid from start to goal with adaptive heuristic values.
-    Parameters:
-      grid: a 2D numpy array where 0 represents unblocked and 1 represents blocked.
-      start: tuple (x, y) indicating the start cell.
-      goal: tuple (x, y) indicating the goal cell.
-      h_values: a dictionary storing the heuristic values for each cell.
-    Returns:
-      A list of cells (tuples) representing the path from start to goal, or None if no path is found.
-      A set of cells (tuples) that were expanded during the search.
-      A dictionary of came_from pointers for path reconstruction.
+
+    returns:
+        path: A list of tuples representing the path from start to goal.
+        closed_set: A set of tuples representing the cells that have been visited.
+        came_from: A dictionary mapping each cell to its parent cell in the path.
+        nodes_expanded: The number of nodes expanded during the search.
     """
+
+    # Initialize the all needed variables
     open_set = []
     start_h = h_values[start] if start in h_values else manhattan_distance(start, goal)
     heapq.heappush(open_set, (start_h, 0, start))
     
     came_from = {}
     g_score = {start: 0}
-    closed_set = set()  # Track expanded states
+    closed_set = set()
     nodes_expanded = 0
 
     while open_set:
@@ -87,14 +86,15 @@ def adaptive_astar(grid, start, goal):
     Adaptive A* algorithm.
     The agent searches from its current position to the goal and updates heuristic values after each search.
     """
+    
+    # Initialize the all needed variables
     agent_position = start
-    agent_knowledge = np.full_like(grid, UNBLOCKED)  # Initially, assume all cells are unblocked
-    h_values = {}  # Store heuristic values for each cell
+    agent_knowledge = np.full_like(grid, UNBLOCKED)  #assume all cells are unblocked
+    h_values = {}
     returnedPath = []
     total_nodes_expanded = 0
 
     while agent_position != goal:
-        # Run A* with adaptive heuristic values
         path, closed_set, came_from, nodes_expanded = astar_adaptive(agent_knowledge, agent_position, goal, h_values)
         total_nodes_expanded += nodes_expanded 
         if not path:
@@ -103,29 +103,29 @@ def adaptive_astar(grid, start, goal):
             return None, total_nodes_expanded
         
         # Update heuristic values for all expanded states
-        goal_distance = len(path) - 1  # g(s_goal)
+        goal_distance = len(path) - 1 
         for cell in closed_set:
-            # Reconstruct the path to the cell to calculate g(s)
             cell_path = reconstruct_path(came_from, cell)
             g_cell = len(cell_path) - 1
             h_values[cell] = goal_distance - g_cell
 
         # Move the agent along the path
-        for next_cell in path[1:]:  # Skip the first cell (current position)
+        for next_cell in path[1:]: 
             if grid[next_cell[0], next_cell[1]] == BLOCKED:
                 # Update the agent's knowledge: mark this cell as blocked
                 agent_knowledge[next_cell[0], next_cell[1]] = BLOCKED
-                break  # Stop moving and replan
+                break 
             else:
                 # Move to the next cell
                 agent_position = next_cell
                 returnedPath.append(agent_position)
         else:
-            # If the loop completes without breaking, the agent has reached the goal
+            #agent reached the goal
             print("Reached the goal!")
             print(f"Total nodes expanded: {total_nodes_expanded}")
             return returnedPath, total_nodes_expanded
 
+    #agent reached the goal
     print("Reached the goal!")
     print(f"Total nodes expanded: {total_nodes_expanded}")
     return returnedPath, total_nodes_expanded
@@ -135,7 +135,6 @@ def find_nearest_unblocked(grid, position):
     Finds the nearest unblocked cell to the given position.
     Uses a BFS search to find the closest unblocked cell.
     """
-    from collections import deque
 
     rows, cols = grid.shape
     queue = deque([position])
@@ -144,25 +143,23 @@ def find_nearest_unblocked(grid, position):
     while queue:
         x, y = queue.popleft()
 
-        # If this cell is unblocked, return it
         if grid[x, y] == UNBLOCKED:
             return (x, y)
 
-        # Check all four neighbors
         for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
             nx, ny = x + dx, y + dy
             if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited:
                 visited.add((nx, ny))
                 queue.append((nx, ny))
 
-    return None  # No unblocked cells found (shouldn't happen in a valid grid)
+    return None
 
 # Example usage
 if __name__ == "__main__":
     # Load a gridworld from a file
     grid = np.loadtxt("gridworlds/gridworld4.txt", dtype=int)
 
-    # Define start and goal positions
+    # Define start and goal
     start = (0, 0)
     goal = (grid.shape[0] - 1, grid.shape[1] - 1)
 
