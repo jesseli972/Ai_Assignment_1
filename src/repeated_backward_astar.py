@@ -128,15 +128,54 @@ def repeated_backward_astar(grid, start, goal):
     print(f"Total nodes expanded: {total_nodes_expanded}")
     return returnedPath
 
+def find_nearest_unblocked(grid, position):
+    """
+    Finds the nearest unblocked cell to the given position.
+    Uses a BFS search to find the closest unblocked cell.
+    """
+    from collections import deque
+
+    rows, cols = grid.shape
+    queue = deque([position])
+    visited = set([position])
+
+    while queue:
+        x, y = queue.popleft()
+
+        # If this cell is unblocked, return it
+        if grid[x, y] == UNBLOCKED:
+            return (x, y)
+
+        # Check all four neighbors
+        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < rows and 0 <= ny < cols and (nx, ny) not in visited:
+                visited.add((nx, ny))
+                queue.append((nx, ny))
+
+    return None  # No unblocked cells found (shouldn't happen in a valid grid)
+
 # Example usage
 if __name__ == "__main__":
     # Load a gridworld from a file
     grid = np.loadtxt("gridworlds/gridworld4.txt", dtype=int)
-    
+
     # Define start and goal positions
     start = (0, 0)
     goal = (grid.shape[0] - 1, grid.shape[1] - 1)
-    
+
+    # Check if start or goal is blocked
+    if grid[start] == BLOCKED:
+        start = find_nearest_unblocked(grid, start)
+        if start is None:
+            exit()
+
+    if grid[goal] == BLOCKED:
+        goal = find_nearest_unblocked(grid, goal)
+        if goal is None:
+            exit()
+
+    print(f"Using start: {start}, goal: {goal}")
     # Run Repeated Backward A*
     path = repeated_backward_astar(grid, start, goal)
     if path:
