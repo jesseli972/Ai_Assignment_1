@@ -101,7 +101,9 @@ def repeated_forward_astar(grid, start, goal):
         path, nodes_expanded = astar(agent_knowledge, agent_position, goal)
         total_nodes_expanded += nodes_expanded  # Accumulate nodes expanded
         if not path:
-            return None
+            print("No path found.")
+            print(f"Total nodes expanded: {total_nodes_expanded}")
+            return None, total_nodes_expanded
         
         # Move the agent along the path (from start to goal)
         for next_cell in path:  # Skip the first cell (current position)
@@ -117,11 +119,11 @@ def repeated_forward_astar(grid, start, goal):
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
             print(f"Total nodes expanded: {total_nodes_expanded}")
-            return returnedPath
+            return returnedPath, total_nodes_expanded
 
     print("Reached the goal!")
     print(f"Total nodes expanded: {total_nodes_expanded}")
-    return returnedPath
+    return returnedPath, total_nodes_expanded
 
 def find_nearest_unblocked(grid, position):
     """
@@ -173,7 +175,7 @@ if __name__ == "__main__":
     print(f"Using start: {start}, goal: {goal}")
 
     # Run Repeated Forward A*
-    path = repeated_forward_astar(grid, start, goal)
+    path, nodes_expanded = repeated_forward_astar(grid, start, goal)
     if path:
         print("Path found:")
         print(path)

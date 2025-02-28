@@ -100,7 +100,7 @@ def adaptive_astar(grid, start, goal):
         if not path:
             print("No path found.")
             print(f"Total nodes expanded: {total_nodes_expanded}")
-            return None
+            return None, total_nodes_expanded
         
         # Update heuristic values for all expanded states
         goal_distance = len(path) - 1  # g(s_goal)
@@ -124,11 +124,11 @@ def adaptive_astar(grid, start, goal):
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
             print(f"Total nodes expanded: {total_nodes_expanded}")
-            return returnedPath
+            return returnedPath, total_nodes_expanded
 
     print("Reached the goal!")
     print(f"Total nodes expanded: {total_nodes_expanded}")
-    return returnedPath
+    return returnedPath, total_nodes_expanded
 
 def find_nearest_unblocked(grid, position):
     """
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     print(f"Using start: {start}, goal: {goal}")
 
     # Run Adaptive A*
-    path = adaptive_astar(grid, start, goal)
+    path, nodes_expanded = adaptive_astar(grid, start, goal)
     if path:
         print("Path found:")
         print(path)

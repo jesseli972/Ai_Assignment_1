@@ -103,7 +103,9 @@ def repeated_backward_astar(grid, start, goal):
         total_nodes_expanded += nodes_expanded  # Accumulate nodes expanded
 
         if not path:
-            return None
+            print("No path found.")
+            print(f"Total nodes expanded: {total_nodes_expanded}")
+            return None, total_nodes_expanded
         
         # Move the agent along the path (in reverse order, since the search is backward)
         for next_cell in reversed(path):  # Skip the first cell (current position)
@@ -122,11 +124,11 @@ def repeated_backward_astar(grid, start, goal):
             # If the loop completes without breaking, the agent has reached the goal
             print("Reached the goal!")
             print(f"Total nodes expanded: {total_nodes_expanded}")
-            return returnedPath
+            return returnedPath, total_nodes_expanded
 
     print("Reached the goal!")
     print(f"Total nodes expanded: {total_nodes_expanded}")
-    return returnedPath
+    return returnedPath, total_nodes_expanded
 
 def find_nearest_unblocked(grid, position):
     """
@@ -158,7 +160,7 @@ def find_nearest_unblocked(grid, position):
 # Example usage
 if __name__ == "__main__":
     # Load a gridworld from a file
-    grid = np.loadtxt("gridworlds/gridworld4.txt", dtype=int)
+    grid = np.loadtxt("gridworlds/gridworld1.txt", dtype=int)
 
     # Define start and goal positions
     start = (0, 0)
@@ -177,7 +179,7 @@ if __name__ == "__main__":
 
     print(f"Using start: {start}, goal: {goal}")
     # Run Repeated Backward A*
-    path = repeated_backward_astar(grid, start, goal)
+    path, nodes_expanded = repeated_backward_astar(grid, start, goal)
     if path:
         print("Path found:")
         print(path)
